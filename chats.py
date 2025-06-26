@@ -66,7 +66,8 @@ def createChart(filename, img_filename):
     plt.legend()
 
     if img_filename.endswith(".pdf"):
-        plt.savefig(img_filename, format="pdf")
+        img_filename_short = img_filename[:-4]
+        plt.savefig(img_filename_short + '-log.pdf', format="pdf")
     else:
         plt.savefig(img_filename + '.png')
     # plt.show()
@@ -74,8 +75,8 @@ def createChart(filename, img_filename):
     plt.yscale('log')
     if img_filename.endswith(".pdf"):
         #remove the .pdf extension to avoid duplication
-        img_filename = img_filename[:-4]
-        plt.savefig(img_filename + '-log.pdf', format="pdf")
+        img_filename_short = img_filename[:-4]
+        plt.savefig(img_filename_short + '-log.pdf', format="pdf")
     else:
         plt.savefig(img_filename + '-log.png')
                 
@@ -100,15 +101,17 @@ def createChart(filename, img_filename):
     
     plt.legend()
     if img_filename.endswith(".pdf"):
-        img_filename = img_filename[:-4]
-        plt.savefig(img_filename + '-speedup.pdf', format="pdf")
+        print("Saving speedup chart as PDF 1")
+        img_filename_short = img_filename[:-4]
+        plt.savefig(img_filename_short + '-speedup.pdf', format="pdf")
     else:
         plt.savefig(img_filename + '-speedup.png')
         
     plt.yscale('log')
     if img_filename.endswith(".pdf"):
-        img_filename = img_filename[:-4]
-        plt.savefig(img_filename + '-speedup-log.pdf', format="pdf")
+        print("Saving speedup chart as PDF 2")
+        img_filename_short = img_filename[:-4]
+        plt.savefig(img_filename_short + '-speedup-log.pdf', format="pdf")
     else:
         plt.savefig(img_filename + '-speedup-log.png')
        
