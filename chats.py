@@ -27,17 +27,7 @@ def createChart(filename, img_filename):
     # Printo il dataframe
     print(df)
 
-    # Preprocessing del dataframe
-    # Cerca i valori NaN nella colonna 'timestamp(us)' e calcolali come timestamp(ticks)/40
-    if 'timestamp(us)' in df.columns:
-        df['timestamp(us)'] = df['timestamp(us)'].fillna(df['timestamp(tiks)'] / 40)
-    else:
-        print("Column 'timestamp(us)' not found in dataframe. Skipping NaN replacement.")
-    
-
-    print("\nDataframe after preprocessing:")
-    print(df)
-    
+    # Controllo che le colonne siano presenti    
     df['BTPU'] = df['Caricamento'] + df['Settaggio'] + df['Inizializzazione'] + df['ComputazioneBTPU'] + df['LetturaRisultato']
     
     # print(df[['BTPU', 'ComputazioneSerialeFast']])
@@ -45,7 +35,8 @@ def createChart(filename, img_filename):
     df_FPGA = df[df['platform'] == 'FPGA']
     df_RP2350 = df[df['platform'] == 'RP2350']
     
-    df_RP2350['ComputazioneBTPU'] = df_FPGA['ComputazioneBTPU']
+    df_RP2350 = df_RP2350.iloc[:len(df_FPGA)].copy()
+    df_RP2350['ComputazioneBTPU'] = df_FPGA['ComputazioneBTPU'].values
     
     sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_FPGA, label='RISC-V', color='blue')
     sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_RP2350, label='RP2350', color='orange')
