@@ -13,6 +13,8 @@ def seabornConfig():
 def createChart(filename, img_filename):
     plt.clf()
     
+    x_values = 8
+    
     # Leggi il dataframe dal file CSV
     try:
         df = pd.read_csv(filename)
@@ -30,13 +32,15 @@ def createChart(filename, img_filename):
     # Controllo che le colonne siano presenti    
     df['BTPU'] = df['Caricamento'] + df['Settaggio'] + df['Inizializzazione'] + df['ComputazioneBTPU'] + df['LetturaRisultato']
     
+    # Calcolo dello speedup
+    df['Speedup'] = df['ComputazioneSerialeFast'] / df['BTPU']
+    
     # print(df[['BTPU', 'ComputazioneSerialeFast']])
     
     df_FPGA = df[df['platform'] == 'FPGA']
     df_RP2350 = df[df['platform'] == 'RP2350']
     
-    df_RP2350 = df_RP2350.iloc[:len(df_FPGA)].copy()
-    df_RP2350['ComputazioneBTPU'] = df_FPGA['ComputazioneBTPU'].values
+    df_RP2350.loc[:, 'ComputazioneBTPU'] = df_FPGA['ComputazioneBTPU'].values
     
     sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_FPGA, label='RISC-V', color='blue')
     sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_RP2350, label='RP2350', color='orange')
@@ -73,6 +77,40 @@ def createChart(filename, img_filename):
         plt.savefig(img_filename + '-log.pdf', format="pdf")
     else:
         plt.savefig(img_filename + '-log.png')
+                
+    ## Plotting the speedup
+    plt.clf()
+        
+    sns.lineplot(x='size(bit)', y='Speedup', data=df_FPGA, label='RISC-V/BTPU', color='blue')
+    sns.lineplot(x='size(bit)', y='Speedup', data=df_RP2350, label='RP2350/BTPU(*sim)', color='red')
+    plt.title('Speedup')
+    
+    plt.xlabel('Dimensione (bit)')
+    plt.ylabel('Speedup')
+    
+    plt.xscale('log')
+    ticks = []
+    ticks_labels = []
+    for i in range(5, 10):
+        ticks.append(2**i)
+        ticks_labels.append('$2^{' + str(i) + '}$')
+    
+    plt.xticks(ticks, ticks_labels)    
+    
+    plt.legend()
+    if img_filename.endswith(".pdf"):
+        img_filename = img_filename[:-4]
+        plt.savefig(img_filename + '-speedup.pdf', format="pdf")
+    else:
+        plt.savefig(img_filename + '-speedup.png')
+        
+    plt.yscale('log')
+    if img_filename.endswith(".pdf"):
+        img_filename = img_filename[:-4]
+        plt.savefig(img_filename + '-speedup-log.pdf', format="pdf")
+    else:
+        plt.savefig(img_filename + '-speedup-log.png')
+       
     return 1
 
     
@@ -83,4 +121,4 @@ if __name__ == "__main__":
     
 
     # Create the chart
-    createChart("DatiRow/RisultatiRow.csv", "Immagini/risultati.pdf")
+    createChart("DatiRow/RisultatiRow.csv", "Immagini/risultati")
