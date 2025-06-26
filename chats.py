@@ -38,14 +38,51 @@ def createChart(filename, img_filename):
     print("\nDataframe after preprocessing:")
     print(df)
     
-    sizes = df['size(bit)'].unique()
+    df['BTPU'] = df['Caricamento'] + df['Settaggio'] + df['Inizializzazione'] + df['ComputazioneBTPU'] + df['LetturaRisultato']
     
-    for size in sizes:
-        print (f"\nSize: {a} bits")
-        df_FPGA = df[(df['platform'] == 'FPGA') & (df['size(bit)'] == size)]
-        df_RP   = df[(df['platform'] == 'RP2350') & (df['size(bit)'] == size)]
-        
+    # print(df[['BTPU', 'ComputazioneSerialeFast']])
+    
+    df_FPGA = df[df['platform'] == 'FPGA']
+    df_RP2350 = df[df['platform'] == 'RP2350']
+    
+    df_RP2350['ComputazioneBTPU'] = df_FPGA['ComputazioneBTPU']
+    
+    sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_FPGA, label='RISC-V', color='blue')
+    sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_RP2350, label='RP2350', color='orange')
+    sns.lineplot(x='size(bit)', y='BTPU', data=df_FPGA, label='BTPU', color='red')
+    sns.lineplot(x='size(bit)', y='BTPU', data=df_RP2350, label='BTPU (*sim)', color='green')
 
+
+    # Add title and axis names
+    plt.title('Performance in termini di tempo di esecuzione')
+    plt.xlabel('Dimensione (bit)')
+    plt.ylabel('Tempo (us)')
+    plt.xscale('log')
+
+    ticks = []
+    ticks_labels = []
+
+    for i in range(5, 10):
+        ticks.append(2**i)
+        ticks_labels.append('$2^{' + str(i) + '}$')
+        
+    plt.xticks(ticks, ticks_labels)
+    plt.legend()
+
+    if img_filename.endswith(".pdf"):
+        plt.savefig(img_filename, format="pdf")
+    else:
+        plt.savefig(img_filename + '.png')
+    # plt.show()
+
+    plt.yscale('log')
+    if img_filename.endswith(".pdf"):
+        #remove the .pdf extension to avoid duplication
+        img_filename = img_filename[:-4]
+        plt.savefig(img_filename + '-log.pdf', format="pdf")
+    else:
+        plt.savefig(img_filename + '-log.png')
+    return 1
 
     
 
@@ -55,4 +92,4 @@ if __name__ == "__main__":
     
 
     # Create the chart
-    createChart("DatiRow/RisultatiRow.csv", "Immagini/risultati.png")
+    createChart("DatiRow/RisultatiRow.csv", "Immagini/risultati.pdf")
