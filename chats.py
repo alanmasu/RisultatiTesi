@@ -52,16 +52,17 @@ def createChart(filename, img_filename):
     plt.title('Performance in termini di tempo di esecuzione')
     plt.xlabel('Dimensione (bit)')
     plt.ylabel('Tempo (us)')
-    plt.xscale('log')
+    plt.xscale('log', base=2)
 
     ticks = []
     ticks_labels = []
 
-    for i in range(5, 10):
+    for i in range(5, 9):
         ticks.append(2**i)
         ticks_labels.append('$2^{' + str(i) + '}$')
         
     plt.xticks(ticks, ticks_labels)
+    # plt.xlim(2**5, 2**8)
     plt.legend()
 
     if img_filename.endswith(".pdf"):
@@ -86,12 +87,11 @@ def createChart(filename, img_filename):
     plt.title('Speedup')
     
     plt.xlabel('Dimensione (bit)')
-    plt.ylabel('Speedup')
     
-    plt.xscale('log')
+    plt.xscale('log', base=2)
     ticks = []
     ticks_labels = []
-    for i in range(5, 10):
+    for i in range(5, 9):
         ticks.append(2**i)
         ticks_labels.append('$2^{' + str(i) + '}$')
     
@@ -122,3 +122,4 @@ if __name__ == "__main__":
 
     # Create the chart
     createChart("DatiRow/RisultatiRow.csv", "Immagini/risultati")
+    createChart("DatiRow/RisultatiRow.csv", "Immagini/risultati.pdf")
