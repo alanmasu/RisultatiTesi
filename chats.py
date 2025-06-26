@@ -87,6 +87,7 @@ def createChart(filename, img_filename):
     plt.title('Speedup')
     
     plt.xlabel('Dimensione (bit)')
+    plt.ylabel('')
     
     plt.xscale('log', base=2)
     ticks = []
