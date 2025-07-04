@@ -39,31 +39,8 @@ def df_to_latex_data_only(df, float_fmt=".3f"):
             else:
                 latex_row.append(str(item))
         print(" & ".join(latex_row) + r" \\")
-
-def createChart(filename, img_filename):
-    plt.clf()
-    
-    x_values = 8
-    
-    # Leggi il dataframe dal file CSV
-    try:
-        df = pd.read_csv(filename)
-    except Exception as e:
-        print(f"Error reading dataframe from file {filename}: {e}")
-        return 0
-    
-    if df.empty:
-        print(f"Dataframe is empty")
-        return 0
-    
-    # Printo il dataframe
-    print(df)
-
-    df_complete = df[df['platform'] == 'RP2350']
-    df_math = df[df['platform'] == 'RP2350-NOMATH']
-    df_transpose = df[df['platform'] == 'RP2350-NOTRANSPOSE']
-    df_memory = df[df['platform'] == 'RP2350-ONLYMEMORY']
-    
+        
+def plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, arch):
     # Copia le colonne 'ComputazioneSerialeFast' dei tre df nuovi in df
     df_complete.loc[:, 'mathTime'] = df_math['ComputazioneSerialeFast'].values
     df_complete.loc[:, 'transposeTime'] = df_transpose['ComputazioneSerialeFast'].values
@@ -118,7 +95,7 @@ def createChart(filename, img_filename):
     print(pivot_df)
     
     plt.xticks(rotation=0)
-    plt.title('Percentuale di tempo di esecuzione per task')
+    plt.title(f'Percentuale di tempo di esecuzione per task ({arch})')
 
     
     ax.set_ylabel('Valore')
@@ -138,10 +115,39 @@ def createChart(filename, img_filename):
     ax.legend(handles, labels=new_labels, title='Piattaforma', bbox_to_anchor=(1.02, 1), loc='upper left',borderaxespad=0.)    
     
     plt.tight_layout()
-    plt.savefig(img_filename + '.png')
-    plt.savefig(img_filename + '.pdf')
+    plt.savefig(img_filename + f'-{arch}.png')
+    plt.savefig(img_filename + f'-{arch}.pdf')
     
+    print(f"DataFrame in formato LaTeX (ARCH: {arch}):")
     df_to_latex_data_only(pivot_df, float_fmt=".2f")
+
+def createChart(filename, img_filename):
+    plt.clf()
+    
+    x_values = 8
+    
+    # Leggi il dataframe dal file CSV
+    try:
+        df = pd.read_csv(filename)
+    except Exception as e:
+        print(f"Error reading dataframe from file {filename}: {e}")
+        return 0
+    
+    if df.empty:
+        print(f"Dataframe is empty")
+        return 0
+    
+    # Printo il dataframe
+    print(df)
+
+    df_complete = df[df['platform'] == 'RP2350']
+    df_math = df[df['platform'] == 'RP2350-NOMATH']
+    df_transpose = df[df['platform'] == 'RP2350-NOTRANSPOSE']
+    df_memory = df[df['platform'] == 'RP2350-ONLYMEMORY']
+    
+    plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, 'RP2350')
+    
+    
     
     return 1
 
