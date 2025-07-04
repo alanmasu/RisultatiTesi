@@ -154,6 +154,13 @@ def createChart(filename, img_filename):
     
     plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, 'RP2350')
     
+    df_complete = df[df['platform'] == 'FPGA']
+    df_math = df[df['platform'] == 'FPGA-NOMATH']
+    df_transpose = df[df['platform'] == 'FPGA-NOTRANSPOSE']
+    df_memory = df[df['platform'] == 'FPGA-ONLYMEMORY']
+    
+    plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, 'FPGA')
+    
     
     
     return 1
