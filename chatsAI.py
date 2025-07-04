@@ -11,16 +11,25 @@ def seabornConfig():
 
 def df_to_latex_data_only(df, float_fmt=".3f"):
     """
-    Stampa i dati del DataFrame in formato LaTeX, inclusi i nomi delle colonne.
+    Stampa i dati del DataFrame in formato LaTeX, inclusi i nomi delle colonne e l'indice come prima colonna.
     I float interi vengono stampati senza decimali, gli altri secondo il formato specificato.
     """
-    # Header (nomi delle colonne)
-    header = " & ".join(df.columns.astype(str)) + r" \\"
+    # Inserisce l'etichetta dell'indice come prima colonna (se ha nome, lo usa)
+    index_name = df.index.name if df.index.name else ""
+    header = " & ".join([index_name] + df.columns.astype(str).tolist()) + r" \\"
     print(header)
 
     # Riga per riga
-    for _, row in df.iterrows():
+    for idx, row in df.iterrows():
         latex_row = []
+
+        # Aggiunge il valore dell'indice come prima colonna
+        if isinstance(idx, float):
+            latex_row.append(f"{int(idx)}" if idx.is_integer() else format(idx, float_fmt))
+        else:
+            latex_row.append(str(idx))
+
+        # Poi i dati della riga
         for item in row:
             if isinstance(item, float):
                 if item.is_integer():
@@ -70,6 +79,29 @@ def createChart(filename, img_filename):
     df_complete['memoryPercent'] = df_complete['memoryTime'] / df_complete['ComputazioneSerialeFast'] * 100
     # df_complete['otherPercent'] = 100 - df_complete['mathPercent'] - df_complete['transposePercent'] - df_complete['memoryPercent']
     
+    print(df_complete)
+    
+    # Normalizzo le percentuali affinchè la somma sia 100 distribuendo l'errore sulle tre colonne
+    error = 100 - (df_complete['mathPercent'] + df_complete['transposePercent'] + df_complete['memoryPercent'])
+    
+    print(error)
+    df_complete['mathPercent'] = df_complete['mathPercent'] + error / 3
+    df_complete['transposePercent'] = df_complete['transposePercent'] + error / 3
+    df_complete['memoryPercent'] = df_complete['memoryPercent'] + error / 3
+    
+    # Arrotondo le percentuali a due decimali
+    df_complete['mathPercent'] = df_complete['mathPercent'].round(2)
+    df_complete['transposePercent'] = df_complete['transposePercent'].round(2)
+    df_complete['memoryPercent'] = df_complete['memoryPercent'].round(2)
+    
+    # Correzione dell'errore finale
+    errorAfter = 100 - (df_complete['mathPercent'] + df_complete['transposePercent'] + df_complete['memoryPercent'])
+    df_complete['memoryPercent'] = df_complete['memoryPercent'] + errorAfter
+    
+    # Flitro le colonne con le percentuali e la dimensione in bit
+    df_complete = df_complete[['size(bit)', 'mathPercent', 'transposePercent', 'memoryPercent']]
+        
+    # 
     df_long = df_complete.melt(id_vars='size(bit)', var_name='task', value_name='percent')
     
     #Filtra solo le righe che contengono le percentuali
@@ -82,19 +114,12 @@ def createChart(filename, img_filename):
     fig, ax = plt.subplots(figsize=(10, 6))
     pivot_df.plot(kind='bar', stacked=True, ax=ax)
     
+    
     print(pivot_df)
     
     plt.xticks(rotation=0)
-    # plt.xlabel('Dimensione (bit)')
-    # plt.ylabel('Percentuale (%)')
     plt.title('Percentuale di tempo di esecuzione per task')
-    # plt.suptitle('ComputazioneSerialeFast - Barre Impilate per Dimensione (bit)', fontsize=14, y=1.08)
-    # plt.legend(
-    #     title='Piattaforma',
-    #     bbox_to_anchor=(0.5, 1.15),
-    #     loc='upper center',
-    #     ncol=2,
-    # )
+
     
     ax.set_ylabel('Valore')
     ax.set_xlabel('Dimensione (bit)')
@@ -115,8 +140,8 @@ def createChart(filename, img_filename):
     plt.tight_layout()
     plt.savefig(img_filename + '.png')
     plt.savefig(img_filename + '.pdf')
-        
     
+    df_to_latex_data_only(pivot_df, float_fmt=".2f")
     
     return 1
 
