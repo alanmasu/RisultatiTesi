@@ -82,6 +82,7 @@ def createChart(filename, img_filename):
     fig, ax = plt.subplots(figsize=(10, 6))
     pivot_df.plot(kind='bar', stacked=True, ax=ax)
     
+    print(pivot_df)
     
     plt.xticks(rotation=0)
     # plt.xlabel('Dimensione (bit)')
@@ -109,16 +110,7 @@ def createChart(filename, img_filename):
 
     # Applica la mappatura solo alla legenda
     new_labels = [legend_labels.get(label, label) for label in labels]
-    ax.legend(handles, new_labels, title='Piattaforma', bbox_to_anchor=(1.02, 1), loc='upper left')
-
-    # Legenda fuori dal grafico, a destra
-    ax.legend(
-        title='Piattaforma',
-        bbox_to_anchor=(1.02, 1),
-        loc='upper left',
-        borderaxespad=0.
-    )
-    
+    ax.legend(handles, labels=new_labels, title='Piattaforma', bbox_to_anchor=(1.02, 1), loc='upper left',borderaxespad=0.)    
     
     plt.tight_layout()
     plt.savefig(img_filename + '.png')
