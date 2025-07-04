@@ -98,7 +98,7 @@ def plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, arch):
     plt.title(f'Percentuale di tempo di esecuzione per task ({arch})')
 
     
-    ax.set_ylabel('Valore')
+    ax.set_ylabel('Valore (%)')
     ax.set_xlabel('Dimensione (bit)')
     
     legend_labels = {
