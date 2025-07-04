@@ -50,6 +50,12 @@ def plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, arch):
     df_complete['transpose'] = df_complete['ComputazioneSerialeFast'] - df_complete['transposeTime']
     # df_complete['memory'] = df_complete['ComputazioneSerialeFast'] - df_complete['memoryTime']
     
+    df_complete['BTPU_memory'] = df_complete['Caricamento'] + df_complete['LetturaRisultato'] + df_complete['Settaggio'] + df_complete['Inizializzazione']
+    df_complete['mp_vs_ms'] = ((df_complete['memoryTime'] / df_complete['BTPU_memory']))
+    # df_complete['mp_vs_ms'] = (1-(df_complete['BTPU_memory'] / df_complete['memoryTime']))
+    # df_complete['mp_vs_ms'] = ((df_complete['BTPU_memory'] / df_complete['memoryTime']))
+
+    
     # Calcolo le percentuali
     df_complete['mathPercent'] = df_complete['math'] / df_complete['ComputazioneSerialeFast'] * 100
     df_complete['transposePercent'] = df_complete['transpose'] / df_complete['ComputazioneSerialeFast'] * 100
@@ -58,10 +64,11 @@ def plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, arch):
     
     print(df_complete)
     
+    print(df_complete[['BTPU_memory', 'memoryTime', 'mp_vs_ms']])
+    
     # Normalizzo le percentuali affinchè la somma sia 100 distribuendo l'errore sulle tre colonne
     error = 100 - (df_complete['mathPercent'] + df_complete['transposePercent'] + df_complete['memoryPercent'])
     
-    print(error)
     df_complete['mathPercent'] = df_complete['mathPercent'] + error / 3
     df_complete['transposePercent'] = df_complete['transposePercent'] + error / 3
     df_complete['memoryPercent'] = df_complete['memoryPercent'] + error / 3
