@@ -51,6 +51,7 @@ def plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, arch):
     # df_complete['memory'] = df_complete['ComputazioneSerialeFast'] - df_complete['memoryTime']
     
     df_complete['BTPU_memory'] = df_complete['Caricamento'] + df_complete['LetturaRisultato'] + df_complete['Settaggio'] + df_complete['Inizializzazione']
+    df_complete['BTPU_time'] = df_complete['BTPU_memory'] + df_complete['ComputazioneBTPU']
     df_complete['mp_vs_ms'] = ((df_complete['memoryTime'] / df_complete['BTPU_memory']))
     # df_complete['mp_vs_ms'] = (1-(df_complete['BTPU_memory'] / df_complete['memoryTime']))
     # df_complete['mp_vs_ms'] = ((df_complete['BTPU_memory'] / df_complete['memoryTime']))
@@ -60,44 +61,57 @@ def plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, arch):
     df_complete['mathPercent'] = df_complete['math'] / df_complete['ComputazioneSerialeFast'] * 100
     df_complete['transposePercent'] = df_complete['transpose'] / df_complete['ComputazioneSerialeFast'] * 100
     df_complete['memoryPercent'] = df_complete['memoryTime'] / df_complete['ComputazioneSerialeFast'] * 100
+    df_complete['BTPU_memoryPercent'] = df_complete['BTPU_memory'] / df_complete['BTPU_time'] * 100
+    df_complete['BTPU_mathPercent'] = df_complete['ComputazioneBTPU'] / df_complete['BTPU_time'] * 100
     # df_complete['otherPercent'] = 100 - df_complete['mathPercent'] - df_complete['transposePercent'] - df_complete['memoryPercent']
     
-    print(df_complete)
+    # print(df_complete)
     
     print(df_complete[['BTPU_memory', 'memoryTime', 'mp_vs_ms']])
     
     # Normalizzo le percentuali affinchè la somma sia 100 distribuendo l'errore sulle tre colonne
     error = 100 - (df_complete['mathPercent'] + df_complete['transposePercent'] + df_complete['memoryPercent'])
+    errorBTPU = 100 - (df_complete['BTPU_memoryPercent'] + df_complete['BTPU_mathPercent'])
     
     df_complete['mathPercent'] = df_complete['mathPercent'] + error / 3
     df_complete['transposePercent'] = df_complete['transposePercent'] + error / 3
     df_complete['memoryPercent'] = df_complete['memoryPercent'] + error / 3
+    
+    df_complete['BTPU_memoryPercent'] = df_complete['BTPU_memoryPercent'] + errorBTPU / 2
+    df_complete['BTPU_mathPercent'] = df_complete['BTPU_mathPercent'] + errorBTPU / 2    
     
     # Arrotondo le percentuali a due decimali
     df_complete['mathPercent'] = df_complete['mathPercent'].round(2)
     df_complete['transposePercent'] = df_complete['transposePercent'].round(2)
     df_complete['memoryPercent'] = df_complete['memoryPercent'].round(2)
     
+    df_complete['BTPU_memoryPercent'] = df_complete['BTPU_memoryPercent'].round(2)
+    df_complete['BTPU_mathPercent'] = df_complete['BTPU_mathPercent'].round(2)
+    
     # Correzione dell'errore finale
     errorAfter = 100 - (df_complete['mathPercent'] + df_complete['transposePercent'] + df_complete['memoryPercent'])
+    errorAfterBTPU = 100 - (df_complete['BTPU_memoryPercent'] + df_complete['BTPU_mathPercent'])
     df_complete['memoryPercent'] = df_complete['memoryPercent'] + errorAfter
+    df_complete['BTPU_memoryPercent'] = df_complete['BTPU_memoryPercent'] + errorAfterBTPU
     
     # Flitro le colonne con le percentuali e la dimensione in bit
+    df_complete_BPTU = df_complete[['size(bit)', 'BTPU_mathPercent', 'BTPU_memoryPercent']]
     df_complete = df_complete[['size(bit)', 'mathPercent', 'transposePercent', 'memoryPercent']]
         
     # 
     df_long = df_complete.melt(id_vars='size(bit)', var_name='task', value_name='percent')
+    df_long_BPTU = df_complete_BPTU.melt(id_vars='size(bit)', var_name='task', value_name='percent')
     
     #Filtra solo le righe che contengono le percentuali
     df_long = df_long[df_long['task'].str.contains('Percent')]
     
     
     pivot_df = df_long.pivot(index='size(bit)', columns='task', values='percent')
+    pivot_df_BPTU = df_long_BPTU.pivot(index='size(bit)', columns='task', values='percent')
     
     # Creo un diagramma a barre con le percentuali usando seaborn
     fig, ax = plt.subplots(figsize=(10, 6))
     pivot_df.plot(kind='bar', stacked=True, ax=ax)
-    
     
     print(pivot_df)
     
@@ -119,14 +133,43 @@ def plot_ai(df_complete, df_math, df_transpose, df_memory, img_filename, arch):
 
     # Applica la mappatura solo alla legenda
     new_labels = [legend_labels.get(label, label) for label in labels]
-    ax.legend(handles, labels=new_labels, title='Piattaforma', bbox_to_anchor=(1.02, 1), loc='upper left',borderaxespad=0.)    
+    ax.legend(handles, labels=new_labels, title='Task', bbox_to_anchor=(1.02, 1), loc='upper left',borderaxespad=0.)    
     
     plt.tight_layout()
     plt.savefig(img_filename + f'-{arch}.png')
     plt.savefig(img_filename + f'-{arch}.pdf')
     
+    plt.clf()
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    pivot_df_BPTU.plot(kind='bar', stacked=True, figsize=(10, 6), ax=ax)
+    
+    plt.xticks(rotation=0)
+    plt.title(f'Percentuale di tempo di esecuzione per task ({arch})')
+
+    
+    ax.set_ylabel('Valore (%)')
+    ax.set_xlabel('Dimensione (bit)')
+    
+    legend_labels = {
+        'BTPU_mathPercent': 'Computazione\n+ Trasposizione',
+        'BTPU_memoryPercent': 'Memoria',
+    }
+
+    # Recupera i handle (colore) e label (nome originale)
+    handles, labels = ax.get_legend_handles_labels()
+
+    # Applica la mappatura solo alla legenda
+    new_labels = [legend_labels.get(label, label) for label in labels]
+    ax.legend(handles, labels=new_labels, title='Task', bbox_to_anchor=(1.02, 1), loc='upper left',borderaxespad=0.)    
+    
+    plt.tight_layout()
+    plt.savefig(img_filename + f'-{arch}-BTPU.png')
+    plt.savefig(img_filename + f'-{arch}-BTPU.pdf')
+    
     print(f"DataFrame in formato LaTeX (ARCH: {arch}):")
     df_to_latex_data_only(pivot_df, float_fmt=".2f")
+    df_to_latex_data_only(pivot_df_BPTU, float_fmt=".2f")
 
 def createChart(filename, img_filename):
     plt.clf()
@@ -145,7 +188,15 @@ def createChart(filename, img_filename):
         return 0
     
     # Printo il dataframe
-    print(df)
+    # print(df)
+    
+    # Filtro le dimesioni maggiori di 512 bit
+    df = df[df['size(bit)'] < 512]
+    
+    # Sostituisco i valori di 'ComputazioneBTPU' se 'platform' contiene 'RP2350' con l'equivalente contenuto in 'FPGA'
+    df.loc[df['platform'].str.contains('RP2350'), 'ComputazioneBTPU'] = df.loc[df['platform'].str.contains('FPGA'), 'ComputazioneBTPU'].values
+    
+    # return 1
 
     df_complete = df[df['platform'] == 'RP2350']
     df_math = df[df['platform'] == 'RP2350-NOMATH']

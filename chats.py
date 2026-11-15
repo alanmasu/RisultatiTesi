@@ -82,10 +82,10 @@ def createChart(filename, img_filename):
     
     df_RP2350.loc[:, 'ComputazioneBTPU'] = df_FPGA['ComputazioneBTPU'].values
     
-    sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_FPGA, label='$t_s$ (FPGA)', color='blue')
-    sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_RP2350, label='$t_s$ (RP2350)', color='orange')
-    sns.lineplot(x='size(bit)', y='BTPU', data=df_FPGA, label='$t_p$ (FPGA)', color='red')
-    sns.lineplot(x='size(bit)', y='BTPU', data=df_RP2350, label='$t^{*}_{p}$ (RP2350)', color='green')
+    sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_FPGA, label='$t_{ser}$ (CPU)', color='blue')
+    sns.lineplot(x='size(bit)', y='ComputazioneSerialeFast', data=df_RP2350, label='$t_{ser}$ (RP2350)', color='orange')
+    sns.lineplot(x='size(bit)', y='BTPU', data=df_FPGA, label='$t_{par}$ (BTPU)', color='red')
+    sns.lineplot(x='size(bit)', y='BTPU', data=df_RP2350, label='$t^{*}_{par}$ (RP2350)', color='green', linestyle='--')
 
 
     # Add title and axis names
